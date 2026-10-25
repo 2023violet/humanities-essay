@@ -1,0 +1,6 @@
+interface:
+  display_name: "Humanities Essay｜人文叙事"
+  short_description: "证据驱动的中文历史与文学叙事创作、审校"
+  default_prompt: "使用 $humanities-essay，先核定主题与材料，再以原创立意和可靠证据完成这次人文叙事写作任务；清楚区分史实、解释与文学改编。"
+policy:
+  allow_implicit_invocation: true
