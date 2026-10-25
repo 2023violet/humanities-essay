@@ -1,4 +1,4 @@
-# humanities-essay v3.1.0 · Skill 安装说明
+# humanities-essay v3.2.0 · Skill 安装说明
 
 仓库总览请参阅仓库根目录的 README.md / README.en.md；单独安装本 Skill 时不需要它们。
 
@@ -14,6 +14,10 @@
 
 ```text
 使用 humanities-essay 写一篇约2800字符的人物志，指定单图＋配乐＋长简介，先核查重要原始文献。
+
+使用 humanities-essay 根据我确认的真实经历写一篇关于 AI 与时间感的当代随笔；不要编造第一人称场景，也不必写历史人物。
+
+使用 humanities-essay 只审不改我的句号和语言节奏，分开报告规范、语流与文学表现；不要把减少句号作为优化目标。
 
 使用 humanities-essay 只审不改这篇稿件，只指出事实风险、解释欲、首尾意象与可执行修改清单。
 

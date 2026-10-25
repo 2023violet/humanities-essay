@@ -13,7 +13,7 @@
 ```bash
 git init -b main
 git add .
-git commit -m "Initial release: humanities-essay v3.1.0"
+git commit -m "Initial release: humanities-essay"
 gh auth login                  # 若尚未授权
 gh repo create 2023violet/humanities-essay --public --source . --remote origin --push
 ```
@@ -30,3 +30,5 @@ gh repo create 2023violet/humanities-essay --public --source . --remote origin -
 - `humanities-essay/SKILL.md` 的 name=humanities-essay, metadata.version=3.1.0。
 - GitHub Actions 运行 `Validate Skill` 成功，再将其称为“远端 CI 通过”。
 - 在真实目标模型上运行跨题材 eval 之前，不要在发布说明里写“生成质量已验证”。
+
+> v3.2 及后续维护：优先在单独分支准备改动，通过 PR 和 CI 验证再合并；此初次创建说明不用于覆盖现有 main。

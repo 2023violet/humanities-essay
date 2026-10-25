@@ -73,8 +73,38 @@ class StructureTests(unittest.TestCase):
     def test_frontmatter_version_and_name(self):
         text = (SKILL/'SKILL.md').read_text(encoding='utf8')
         self.assertTrue(text.startswith('---\nname: humanities-essay\n'))
-        self.assertIn('version: "3.1.0"',text)
+        self.assertIn('version: "3.2.0"',text)
         self.assertIn('license: Apache-2.0',text)
 
+
+
+
+# Documentary guardrails are static assertions; they do not substitute for model evaluation.
+class EditorialContractTests(unittest.TestCase):
+    def test_three_tier_language_contract(self):
+        text = (SKILL/'references'/'rhythm-and-line-editing.md').read_text(encoding='utf8')
+        for phrase in ('规范正确性', '语流自然性', '文学表现力', '禁止', '句号'):
+            self.assertIn(phrase, text)
+
+    def test_provenance_and_consent_contract(self):
+        text = (SKILL/'references'/'first-person-and-era-essays.md').read_text(encoding='utf8')
+        for phrase in ('P｜本人亲述', 'O｜可查的外部事实', 'H｜解释', 'X｜缺失', '作者确认'):
+            self.assertIn(phrase, text)
+
+    def test_revision_stop_and_locked_ending(self):
+        text = (SKILL/'references'/'revision-governance.md').read_text(encoding='utf8')
+        self.assertIn('AUTHOR_READY', text)
+        self.assertIn('结尾', text)
+        self.assertIn('不再生成 Vn', text)
+
+    def test_required_reference_missing_is_failure(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as d:
+            clone = Path(d)/'humanities-essay'
+            shutil.copytree(SKILL, clone, ignore=shutil.ignore_patterns('__pycache__'))
+            (clone/'references'/'rhythm-and-line-editing.md').unlink()
+            proc = subprocess.run([sys.executable, str(SKILL/'scripts'/'quick_validate.py'), str(clone)], capture_output=True, text=True)
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertIn('Missing required file', proc.stdout)
 
 if __name__ == '__main__': unittest.main()
