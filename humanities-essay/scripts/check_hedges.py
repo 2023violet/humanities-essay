@@ -56,8 +56,25 @@ JUDGE_START = re.compile(r'^(这是|那是|这才|这就是|这便是|原来|其
 JUDGE_END = re.compile(r'(是[^，、]{1,6}|而已|罢了|不是[^，、]{1,6})$')
 
 
+QUOTE_OPEN = ('“', '「', '『', '"', '——')
+
+
+def quote_lines(body):
+    """1-based ids of lines that belong to a quotation layout and must not be judged as choppy prose:
+    a line opening with a quote mark or a dash (original text / translation), a lead-in line ending
+    with a colon, and the plain-language translation right after a quoted line."""
+    ids = set()
+    for i, line in enumerate(body, 1):
+        if line.startswith(QUOTE_OPEN) or line.endswith(('：', ':')):
+            ids.add(i)
+        elif i > 1 and body[i - 2].startswith(('“', '「', '『', '"')):
+            ids.add(i)
+    return ids
+
+
 def rhythm(body):
     """Descriptive rhythm hints (reader-engagement §6 / rhythm-and-line-editing §0). Not a score."""
+    skip = quote_lines(body)
     text = ''.join(body)
     han = len(HAN.findall(text)) or 1
     periods = text.count('。')
@@ -65,6 +82,8 @@ def rhythm(body):
     avg = sum(len(HAN.findall(x)) for x in sents) / max(len(sents), 1)
     judge_lines = []
     for i, line in enumerate(body, 1):
+        if i in skip:
+            continue
         core = line.strip('“”"')
         parts = [x for x in re.split(r'[。！？]', core) if HAN.search(x)]
         if len(parts) == 1 and len(HAN.findall(core)) <= 14:
@@ -75,7 +94,7 @@ def rhythm(body):
     runs, cur = [], []
     for i, line in enumerate(body, 1):
         parts = [x for x in re.split(r'[。！？]', line) if HAN.search(x)]
-        if len(parts) == 1 and len(HAN.findall(line)) <= 20:
+        if i not in skip and len(parts) == 1 and len(HAN.findall(line)) <= 20:
             cur.append(i)
         else:
             if len(cur) >= 3:

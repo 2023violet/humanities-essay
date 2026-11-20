@@ -74,7 +74,7 @@ class StructureTests(unittest.TestCase):
     def test_frontmatter_version_and_name(self):
         text = (SKILL/'SKILL.md').read_text(encoding='utf8')
         self.assertTrue(text.startswith('---\nname: humanities-essay\n'))
-        self.assertIn('version: "3.5.0"',text)
+        self.assertIn('version: "3.5.1"',text)
         self.assertIn('license: Apache-2.0',text)
 
 
@@ -138,6 +138,14 @@ class HedgeAndRhythmTests(unittest.TestCase):
             self.assertNotIn('≥22', out)
             self.assertNotIn('≈3–4.5', out)
 
+    def test_rhythm_ignores_quotation_layout(self):
+        body = ['曹操走过去，把手搭在她背上，说：', '“顾我共载归乎！”', '回头看看我，跟我坐一辆车回家吧。',
+                '她不回头，也不出声。', '“我前后行意，于心未曾有所负也。”', '——我这一生做过的事，心里从来没觉得亏欠过谁。',
+                '话说到这儿，他又补了一句：', '“假令死而有灵，子脩若问‘我母所在’，我将何辞以答！”']
+        r = hedges.rhythm(body)
+        self.assertEqual(r['runs'], [])
+        self.assertEqual(r['judge'], [])
+
     def test_rhythm_flowing_paragraph_is_quiet(self):
         body = ['张绣恨透了，没过多久就突然发兵偷袭，曹操仓皇往外逃，坐骑绝影又中了流矢，就在这时候，曹昂把自己的马让给了父亲。']
         r = hedges.rhythm(body)
@@ -155,7 +163,7 @@ class EditorialContractTests(unittest.TestCase):
 
     def test_reader_engagement_contract(self):
         text = (SKILL/'references'/'reader-engagement.md').read_text(encoding='utf8')
-        for phrase in ('一句话测试', '前三行', '反证放置', '情绪峰值', '文末注', '认知性争议'):
+        for phrase in ('一句话测试', '前三行', '反证放置', '情绪峰值', '文末注', '认知性争议', '多个认知性争议'):
             self.assertIn(phrase, text)
 
     def test_entry_lists_seven_architectures(self):
@@ -190,7 +198,7 @@ class EditorialContractTests(unittest.TestCase):
 
     def test_required_reference_missing_is_failure(self):
         import shutil
-        with tempfile.TemporaryDirectory() as d:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as d:
             clone = Path(d)/'humanities-essay'
             shutil.copytree(SKILL, clone, ignore=shutil.ignore_patterns('__pycache__'))
             (clone/'references'/'rhythm-and-line-editing.md').unlink()
