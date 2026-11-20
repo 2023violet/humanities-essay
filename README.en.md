@@ -6,7 +6,7 @@
 
 [![Validation](https://github.com/2023violet/humanities-essay/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/2023violet/humanities-essay/actions/workflows/validate.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-![Version](https://img.shields.io/badge/version-3.2.0-informational)
+![Version](https://img.shields.io/badge/version-3.4.0-informational)
 
 [简体中文](README.md) · **English**
 

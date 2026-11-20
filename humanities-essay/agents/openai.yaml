@@ -1,6 +1,6 @@
 interface:
   display_name: "Humanities Essay｜人文叙事"
   short_description: "历史、时代观察、私人随笔的原创研究与审校"
-  default_prompt: "使用 $humanities-essay，先识别历史／文学／当代随笔与只审／改稿权限，用可靠史料或作者确认的真实经历构思与审稿；采用三层自然语流检查，不为句号数量制造版本，保留锁定结尾。"
+  default_prompt: "使用 $humanities-essay，先识别历史／文学／当代随笔与只审／改稿权限，用可靠史料或作者确认的真实经历构思与审稿；史实层及格后按传播层检查选题共鸣、前三行、情绪峰值、作者声音，免责式限定放文末注；采用三层自然语流检查，不为句号数量制造版本，保留锁定结尾。"
 policy:
   allow_implicit_invocation: true
