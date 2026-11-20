@@ -1,0 +1,5 @@
+# Keep LF in every checkout so MANIFEST.sha256 verifies on Windows too.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

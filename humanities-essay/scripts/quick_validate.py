@@ -78,8 +78,8 @@ def main() -> int:
             errors.append("Invalid or mismatched skill name")
         if not desc or not (1 <= len(desc.group(1)) <= 1024):
             errors.append("Invalid description length")
-        if not version or version.group(1) != "3.5.0":
-            errors.append("Expected metadata.version 3.5.0")
+        if not version or version.group(1) != "3.5.1":
+            errors.append("Expected metadata.version 3.5.1")
     # Agent Skills top-level metadata requirements.
     if frontmatter:
         front = frontmatter.group(1)
