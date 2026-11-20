@@ -1,4 +1,4 @@
-# humanities-essay v3.4.0 · Skill 安装说明
+# humanities-essay v3.5.0 · Skill 安装说明
 
 仓库总览请参阅仓库根目录的 README.md / README.en.md；单独安装本 Skill 时不需要它们。
 

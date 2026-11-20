@@ -74,7 +74,7 @@ class StructureTests(unittest.TestCase):
     def test_frontmatter_version_and_name(self):
         text = (SKILL/'SKILL.md').read_text(encoding='utf8')
         self.assertTrue(text.startswith('---\nname: humanities-essay\n'))
-        self.assertIn('version: "3.4.0"',text)
+        self.assertIn('version: "3.5.0"',text)
         self.assertIn('license: Apache-2.0',text)
 
 
@@ -111,6 +111,33 @@ class HedgeAndRhythmTests(unittest.TestCase):
         self.assertLess(r['avg'], 22)
         self.assertEqual(len(r['judge']), 6)
 
+    def test_encoding_fallback_gb18030_and_utf16(self):
+        with tempfile.TemporaryDirectory() as d:
+            for enc in ('gb18030', 'utf-16', 'utf-8-sig'):
+                p = Path(d)/f'{enc}.txt'
+                p.write_bytes('这是萧何。他走了。'.encode(enc))
+                text, used = hedges.read_any(p)
+                self.assertIn('萧何', text)
+                self.assertEqual(hedges.main([str(p)]), 0)
+
+    def test_rhythm_reports_choppy_stretch_location(self):
+        body = ['他走了。', '这是萧何。', '这句话很重。', '张绣恨透了，没过多久就突然发兵偷袭，曹操仓皇往外逃，坐骑绝影又中了流矢。']
+        r = hedges.rhythm(body)
+        self.assertEqual(r['runs'], [(1, 3, 3, 2)])
+
+    def test_rhythm_output_has_no_target_thresholds(self):
+        import io, contextlib
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)/'draft.txt'
+            p.write_text('他走了。\n这是萧何。\n这句话很重。\n', encoding='utf8')
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                hedges.main([str(p)])
+            out = buf.getvalue()
+            self.assertIn('L1–L3', out)
+            self.assertNotIn('≥22', out)
+            self.assertNotIn('≈3–4.5', out)
+
     def test_rhythm_flowing_paragraph_is_quiet(self):
         body = ['张绣恨透了，没过多久就突然发兵偷袭，曹操仓皇往外逃，坐骑绝影又中了流矢，就在这时候，曹昂把自己的马让给了父亲。']
         r = hedges.rhythm(body)
@@ -128,8 +155,27 @@ class EditorialContractTests(unittest.TestCase):
 
     def test_reader_engagement_contract(self):
         text = (SKILL/'references'/'reader-engagement.md').read_text(encoding='utf8')
-        for phrase in ('一句话测试', '前三行', '反证放置', '情绪峰值', '文末注'):
+        for phrase in ('一句话测试', '前三行', '反证放置', '情绪峰值', '文末注', '认知性争议'):
             self.assertIn(phrase, text)
+
+    def test_entry_lists_seven_architectures(self):
+        skill = (SKILL/'SKILL.md').read_text(encoding='utf8')
+        self.assertIn('七类结构', skill)
+        self.assertIn('时代中的个人处境', skill)
+        self.assertNotIn('六类结构', skill)
+
+    def test_regression_ids_unique(self):
+        import re
+        text = (SKILL/'evals'/'regression-matrix.md').read_text(encoding='utf8')
+        ids = re.findall(r'^\| (R\d+) \|', text, re.M)
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_rubric_weights_sum_to_100(self):
+        import re
+        text = (SKILL/'references'/'editorial-qa.md').read_text(encoding='utf8')
+        table = text.split('## B1')[1].split('## B2')[0]
+        weights = [int(x) for x in re.findall(r'^\| [^|]+ \| (\d+) \|', table, re.M)]
+        self.assertEqual(sum(weights), 100)
 
     def test_provenance_and_consent_contract(self):
         text = (SKILL/'references'/'first-person-and-era-essays.md').read_text(encoding='utf8')
