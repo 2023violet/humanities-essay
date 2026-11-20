@@ -1,4 +1,4 @@
-# humanities-essay v3.2.0 · Skill 安装说明
+# humanities-essay v3.4.0 · Skill 安装说明
 
 仓库总览请参阅仓库根目录的 README.md / README.en.md；单独安装本 Skill 时不需要它们。
 
@@ -22,6 +22,8 @@
 使用 humanities-essay 只审不改这篇稿件，只指出事实风险、解释欲、首尾意象与可执行修改清单。
 
 使用 humanities-essay 将已锁稿的文章做一张不限于水墨画风的封面，不修改正文、不自动拆轮播。
+
+使用 humanities-essay 写萧何，单图长简介；先做选题一句话测试和前三行草案，反证放文末注。
 ```
 
-校验：`python scripts/quick_validate.py .`。工具可运行不代表模型写作质量已经通过实测。
+校验：`python scripts/quick_validate.py .`；成稿对冲检查：`python scripts/check_hedges.py 稿件.txt`。工具可运行不代表模型写作质量已经通过实测。

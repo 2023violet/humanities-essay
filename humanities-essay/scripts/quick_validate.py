@@ -36,6 +36,8 @@ EXPECTED = {
     "assets/author-experience-ledger.md",
     "assets/revision-decision-log.md",
     "assets/metrics-template.csv",
+    "references/reader-engagement.md",
+    "scripts/check_hedges.py",
 }
 
 
@@ -76,8 +78,8 @@ def main() -> int:
             errors.append("Invalid or mismatched skill name")
         if not desc or not (1 <= len(desc.group(1)) <= 1024):
             errors.append("Invalid description length")
-        if not version or version.group(1) != "3.2.0":
-            errors.append("Expected metadata.version 3.2.0")
+        if not version or version.group(1) != "3.4.0":
+            errors.append("Expected metadata.version 3.4.0")
     # Agent Skills top-level metadata requirements.
     if frontmatter:
         front = frontmatter.group(1)
