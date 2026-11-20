@@ -60,16 +60,17 @@ QUOTE_OPEN = ('“', '「', '『', '"', '——')
 
 
 def quote_lines(body):
-    """1-based ids of lines that belong to a quotation layout and must not be judged as choppy prose:
-    a line opening with a quote mark or a dash (original text / translation), a lead-in line ending
-    with a colon, and the plain-language translation right after a quoted line."""
-    ids = set()
-    for i, line in enumerate(body, 1):
-        if line.startswith(QUOTE_OPEN) or line.endswith(('：', ':')):
-            ids.add(i)
-        elif i > 1 and body[i - 2].startswith(('“', '「', '『', '"')):
-            ids.add(i)
-    return ids
+    """1-based ids of quotation-layout lines that are not judged as choppy prose: lines opening with a
+    quote mark or a dash (original text / dash-led translation) and lead-in lines ending with a colon.
+    Such a line ends a stretch but does not hide the next one: the line right after a quoted line is
+    still counted (it may be real prose, not a translation); see after_quote()."""
+    return {i for i, line in enumerate(body, 1) if line.startswith(QUOTE_OPEN) or line.endswith(('：', ':'))}
+
+
+def after_quote(body):
+    """1-based ids of counted lines that directly follow a quoted line (possible undashed translation)."""
+    return {i for i in range(2, len(body) + 1) if body[i - 2].startswith(('“', '「', '『', '"'))
+            and not body[i - 1].startswith(QUOTE_OPEN)}
 
 
 def rhythm(body):
@@ -107,7 +108,7 @@ def rhythm(body):
     long_sents = [x.strip() for x in sents if len(HAN.findall(x)) > 60]
     return {'per100': periods / han * 100, 'avg': avg,
             'comma_ratio': text.count('，') / max(periods, 1), 'judge': judge_lines,
-            'runs': runs, 'long': long_sents}
+            'runs': runs, 'long': long_sents, 'after_quote': after_quote(body)}
 
 
 def read_any(path):
@@ -171,7 +172,8 @@ def main(argv=None):
             stray = [(i, l) for i, l in r['judge'] if not any(a <= i <= b for a, b, _, _ in r['runs'])]
             for i, line in stray[:6]:
                 quiet = False
-                print(f'    判断句单独成行 L{i} | {line[:40]}')
+                tag = '（紧跟引语：若是没加破折号的译文，可忽略）' if i in r['after_quote'] else ''
+                print(f'    判断句单独成行 L{i}{tag} | {line[:40]}')
             for x in r['long'][:3]:
                 quiet = False
                 print(f'    超长句（>60 字，可能矫枉过正）| {x[:40]}…')

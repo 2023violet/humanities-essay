@@ -15,5 +15,7 @@ jobs:
           python-version: '3.11'
       - name: Validate skill structure
         run: python humanities-essay/scripts/quick_validate.py humanities-essay
+      - name: Verify MANIFEST.sha256
+        run: python tools/verify_manifest.py
       - name: Test deterministic helpers
         run: python -m unittest discover -s tests -v
