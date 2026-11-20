@@ -78,8 +78,17 @@ def main() -> int:
             errors.append("Invalid or mismatched skill name")
         if not desc or not (1 <= len(desc.group(1)) <= 1024):
             errors.append("Invalid description length")
-        if not version or version.group(1) != "3.5.1":
-            errors.append("Expected metadata.version 3.5.1")
+        if not version:
+            errors.append("metadata.version missing")
+        else:
+            v = version.group(1)
+            readme = (root / "README.md").read_text(encoding="utf-8") if "README.md" in rels else ""
+            changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8") if "CHANGELOG.md" in rels else ""
+            if not re.search(rf"^# humanities-essay v{re.escape(v)}\b", readme, re.M):
+                errors.append(f"README.md title does not match metadata.version {v}")
+            top = re.search(r"^## v([0-9.]+)", changelog, re.M)
+            if not top or top.group(1) != v:
+                errors.append(f"CHANGELOG.md top entry does not match metadata.version {v}")
     # Agent Skills top-level metadata requirements.
     if frontmatter:
         front = frontmatter.group(1)

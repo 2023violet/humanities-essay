@@ -74,7 +74,7 @@ class StructureTests(unittest.TestCase):
     def test_frontmatter_version_and_name(self):
         text = (SKILL/'SKILL.md').read_text(encoding='utf8')
         self.assertTrue(text.startswith('---\nname: humanities-essay\n'))
-        self.assertIn('version: "3.5.1"',text)
+        self.assertRegex(text, r'version: "\d+\.\d+\.\d+"')
         self.assertIn('license: Apache-2.0',text)
 
 
@@ -146,6 +146,23 @@ class HedgeAndRhythmTests(unittest.TestCase):
         self.assertEqual(r['runs'], [])
         self.assertEqual(r['judge'], [])
 
+    def test_rhythm_still_catches_choppy_lines_after_a_quote(self):
+        # regression for v3.5.1: the line after a quote used to be skipped, hiding real choppy prose
+        for first in ('“顾我共载归乎！”', '“我不去，”她说。'):
+            body = [first, '这是真的。', '这也是假的。', '他一直这么想。']
+            r = hedges.rhythm(body)
+            self.assertEqual(r['runs'], [(2, 4, 3, 2)], first)
+
+    def test_line_after_quote_is_counted_but_annotated(self):
+        import io, contextlib
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)/'draft.txt'
+            p.write_text('曹操又问了一句：\n“得无尚可邪！”\n还是不行吗？\n屋里还是没有声音，曹操说了句真诀矣，转身走了，后来他想让丁家把她另嫁。\n', encoding='utf8')
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                hedges.main([str(p)])
+            self.assertIn('紧跟引语', buf.getvalue())
+
     def test_rhythm_flowing_paragraph_is_quiet(self):
         body = ['张绣恨透了，没过多久就突然发兵偷袭，曹操仓皇往外逃，坐骑绝影又中了流矢，就在这时候，曹昂把自己的马让给了父亲。']
         r = hedges.rhythm(body)
@@ -165,6 +182,14 @@ class EditorialContractTests(unittest.TestCase):
         text = (SKILL/'references'/'reader-engagement.md').read_text(encoding='utf8')
         for phrase in ('一句话测试', '前三行', '反证放置', '情绪峰值', '文末注', '认知性争议', '多个认知性争议'):
             self.assertIn(phrase, text)
+
+    def test_reverse_tests_single_source(self):
+        qa = (SKILL/'references'/'editorial-qa.md').read_text(encoding='utf8')
+        skill = (SKILL/'SKILL.md').read_text(encoding='utf8')
+        for n in range(1, 11):
+            self.assertIn(f'**C{n} ', qa)
+            self.assertIn(f'C{n} ', skill)
+        self.assertNotIn('九项逆向测试', qa)
 
     def test_entry_lists_seven_architectures(self):
         skill = (SKILL/'SKILL.md').read_text(encoding='utf8')
@@ -205,5 +230,35 @@ class EditorialContractTests(unittest.TestCase):
             proc = subprocess.run([sys.executable, str(SKILL/'scripts'/'quick_validate.py'), str(clone)], capture_output=True, text=True)
             self.assertNotEqual(proc.returncode, 0)
             self.assertIn('Missing required file', proc.stdout)
+
+
+class RepositoryConsistencyTests(unittest.TestCase):
+    """Version strings and the manifest must agree with the skill; checked, not hand-asserted."""
+
+    def skill_version(self):
+        import re
+        text = (SKILL/'SKILL.md').read_text(encoding='utf8')
+        return re.search(r'^\s*version:\s*"([0-9.]+)"', text, re.M).group(1)
+
+    def test_version_strings_agree(self):
+        import re
+        v = self.skill_version()
+        for name in ('README.md', 'README.en.md'):
+            self.assertIn(f'version-{v}-informational', (ROOT/name).read_text(encoding='utf8'), name)
+        top = re.search(r'^## v([0-9.]+)', (ROOT/'CHANGELOG.md').read_text(encoding='utf8'), re.M).group(1)
+        self.assertEqual(top, v, 'root CHANGELOG top entry')
+        self.assertIn(f'当前：v{v}', (ROOT/'docs'/'ROADMAP.md').read_text(encoding='utf8'))
+
+    def test_manifest_matches_files(self):
+        proc = subprocess.run([sys.executable, str(ROOT/'tools'/'verify_manifest.py')], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_manifest_detects_unlisted_file(self):
+        vm = load('verify_manifest', ROOT/'tools'/'verify_manifest.py')
+        expected = vm.read_manifest(ROOT/'MANIFEST.sha256')
+        actual = dict(expected)
+        actual['humanities-essay/references/new-unlisted.md'] = '0' * 64
+        self.assertIn('not in manifest: humanities-essay/references/new-unlisted.md', vm.compare(expected, actual))
+
 
 if __name__ == '__main__': unittest.main()
